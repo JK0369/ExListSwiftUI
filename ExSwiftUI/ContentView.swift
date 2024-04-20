@@ -16,6 +16,14 @@ struct ContentView: View {
     
     @State private var items = [Person(id: "1", age: 10, name: "jake")]
     @State private var state = ViewState.loading
+    @State private var searchText = ""
+    private var filteredItems: [Person] {
+        if searchText.isEmpty {
+            return items
+        } else {
+            return items.filter { $0.name.localizedCaseInsensitiveContains(searchText) }
+        }
+    }
     
     var body: some View {
         Group {
@@ -26,7 +34,7 @@ struct ContentView: View {
                     ProgressView()
                 }
             case .success:
-                List(items) { person in
+                List(filteredItems) { person in
                     PersonRowView(item: person)
                         .onAppear {
                             if person.id == items.last?.id {
@@ -36,6 +44,8 @@ struct ContentView: View {
                             }
                         }
                 }
+                .refreshable(action: loadMoreItems)
+                .searchable(text: $searchText)
             case .failed:
                 VStack {
                     Text("Failed!!")
